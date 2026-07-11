@@ -1,0 +1,64 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  # Defaults to the chart appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Gateway API exposure — HTTPRoute only, no Ingress. The release namespace must
+# carry the `traefik-reverse-proxy/allow-routes: "true"` label for the route to
+# attach to the shared Gateway.
+route:
+  enabled: true
+  hostname: ""
+  gateway:
+    name: traefik-reverse-proxy
+    namespace: traefik-reverse-proxy
+
+# Environment from AWS SSM via External Secrets Operator: `data` entries are
+# ExternalSecret spec.data items, synced into a Secret the pod envFroms.
+externalSecret:
+  enabled: false
+  refreshInterval: 1h
+  storeRef:
+    name: aws-ssm
+    kind: ClusterSecretStore
+  data: []
+
+env: []
+envFrom: []
+
+livenessProbe:
+  httpGet:
+    path: /livez
+    port: http
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
