@@ -23,21 +23,14 @@ chart, versioned independently (SemVer in its `Chart.yaml`).
   `livenessProbe`/`readinessProbe` wholesale if an app differs.
 - `image.repository` and `route.hostname` are required (template-time `required` guards).
 
-## Consumption — OCI from ECR
+## Consumption — git source, per-chart tags
 
-Charts are consumed as OCI artifacts from ECR (repository `charts/<chart>`; the ECR
-repositories are Terraform-owned in `ryokutek-infrastructure`). Publish:
-
-```sh
-aws ecr get-login-password --region <region> \
-  | helm registry login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
-helm package charts/dotnet-backend
-helm push dotnet-backend-0.1.0.tgz oci://<account>.dkr.ecr.<region>.amazonaws.com/charts
-```
-
-An ArgoCD Application then sources `repoURL: <account>.dkr.ecr.<region>.amazonaws.com/charts`,
-`chart: dotnet-backend`, `targetRevision: 0.1.0`. The ECR repositories, push automation, and
-ArgoCD's ECR credential are wired in `ryokutek-infrastructure` when the first app lands.
+ArgoCD consumes charts straight from this public repository as a git source:
+`repoURL: https://github.com/Ryokutek/helm-charts`, `path: charts/<chart>`,
+`targetRevision: <chart>-<version>`. Releasing a chart change is a version bump in its
+`Chart.yaml` plus a matching `<chart>-<version>` git tag (e.g. `dotnet-backend-0.1.0`) on
+the commit — one tag per chart, so charts keep versioning independently. No packaging,
+no registry, no ArgoCD credential.
 
 ## Development
 
